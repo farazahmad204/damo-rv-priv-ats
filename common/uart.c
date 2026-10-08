@@ -112,6 +112,20 @@ static inline uint8_t uart_reg_read(unsigned int reg) {
     volatile const uint32_t *addr = (volatile const uint32_t *)(uart_base + (reg << PLATFORM_UART_REG_SHIFT));
     return (uint8_t)*addr;
 }
+/* 16-bit I/O width (reg-io-width = <2>): registers accessed as 16-bit
+ * halfwords, e.g. the ESWIN EIC7700X UART on the Milk-V Megrez. */
+#elif PLATFORM_UART_IO_WIDTH == 2
+static uintptr_t uart_base = PLATFORM_UART0_BASE;
+
+static inline void uart_reg_write(unsigned int reg, uint8_t val) {
+    volatile uint16_t *addr = (volatile uint16_t *)(uart_base + (reg << PLATFORM_UART_REG_SHIFT));
+    *addr = (uint16_t)val;
+}
+
+static inline uint8_t uart_reg_read(unsigned int reg) {
+    volatile const uint16_t *addr = (volatile const uint16_t *)(uart_base + (reg << PLATFORM_UART_REG_SHIFT));
+    return (uint8_t)*addr;
+}
 #else
 static volatile uint8_t *uart_base = (volatile uint8_t *)PLATFORM_UART0_BASE;
 
