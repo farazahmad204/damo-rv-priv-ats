@@ -79,9 +79,18 @@ rvtest_entry_point:
      */
     CLEAR_GPRS
 
-    /* ---- Only hart 0 continues; others spin ---- */
+    /* ---- Only the boot hart continues; others spin ----
+     *
+     * The boot hart is hart 0 unless the platform's rvmodel_macros.h sets
+     * RVMODEL_BOOT_HARTID (e.g. a hardware loader that starts the test on
+     * another hart).
+     */
+#ifndef RVMODEL_BOOT_HARTID
+#define RVMODEL_BOOT_HARTID 0
+#endif
     csrr    a0, mhartid
-    bnez    a0, _secondary_spin
+    li      a1, RVMODEL_BOOT_HARTID
+    bne     a0, a1, _secondary_spin
 
     /* ---- Set up stack pointer (use full stack for hart 0) ---- */
     la      sp, __stack_end
