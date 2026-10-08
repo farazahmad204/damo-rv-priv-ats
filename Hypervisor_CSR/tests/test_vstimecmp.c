@@ -23,6 +23,9 @@ TEST_REGISTER(vstc_01_basic_rw);
 bool vstc_01_basic_rw(void)
 {
     TEST_BEGIN("VSTC-01: vstimecmp basic read/write");
+#ifndef SSTC_SUPPORTED
+    TEST_SKIP("Sstc not implemented (no vstimecmp)");
+#endif
 
     uintptr_t test_val = 0xDEADBEEF;
 
@@ -48,6 +51,9 @@ TEST_REGISTER(vstc_02_triggers_vstip);
 bool vstc_02_triggers_vstip(void)
 {
     TEST_BEGIN("VSTC-02: vstimecmp triggers VSTIP");
+#ifndef SSTC_SUPPORTED
+    TEST_SKIP("Sstc not implemented (no vstimecmp)");
+#endif
 
     /* Enable STCE: menvcfg first (M-level gates HS-level per spec) */
     uintptr_t menvcfg;
@@ -91,6 +97,9 @@ TEST_REGISTER(vstc_03_clears_vstip);
 bool vstc_03_clears_vstip(void)
 {
     TEST_BEGIN("VSTC-03: vstimecmp clears VSTIP");
+#ifndef SSTC_SUPPORTED
+    TEST_SKIP("Sstc not implemented (no vstimecmp)");
+#endif
 
     /* Enable STCE: menvcfg first (M-level gates HS-level per spec) */
     uintptr_t menvcfg;
@@ -151,6 +160,9 @@ TEST_REGISTER(vstc_04_vs_access_via_stimecmp);
 bool vstc_04_vs_access_via_stimecmp(void)
 {
     TEST_BEGIN("VSTC-04: VS accesses vstimecmp via stimecmp");
+#ifndef SSTC_SUPPORTED
+    TEST_SKIP("Sstc not implemented (no vstimecmp)");
+#endif
 
     /* Enable STCE so VS-mode can access stimecmp (=vstimecmp).
      * Per spec, VS-mode access to stimecmp requires ALL of:
@@ -267,6 +279,9 @@ TEST_REGISTER(vstc_05_interrupt_delegation_to_vs);
 bool vstc_05_interrupt_delegation_to_vs(void)
 {
     TEST_BEGIN("VSTC-05: vstimecmp interrupt delegation to VS");
+#ifndef SSTC_SUPPORTED
+    TEST_SKIP("Sstc not implemented (no vstimecmp)");
+#endif
 
     /* Enable STCE for vstimecmp comparison logic.
      * VS-mode access to stimecmp (in handler + trampoline) requires
@@ -353,6 +368,9 @@ TEST_REGISTER(vstc_06_interrupt_trap_to_hs);
 bool vstc_06_interrupt_trap_to_hs(void)
 {
     TEST_BEGIN("VSTC-06: vstimecmp interrupt traps to HS");
+#ifndef SSTC_SUPPORTED
+    TEST_SKIP("Sstc not implemented (no vstimecmp)");
+#endif
 
     /* Enable STCE for vstimecmp comparison logic */
     uintptr_t saved_menvcfg = menvcfg_read();
@@ -419,6 +437,9 @@ TEST_REGISTER(vstc_07_htimedelta_affects_comparison);
 bool vstc_07_htimedelta_affects_comparison(void)
 {
     TEST_BEGIN("VSTC-07: htimedelta affects vstimecmp comparison");
+#ifndef SSTC_SUPPORTED
+    TEST_SKIP("Sstc not implemented (no vstimecmp)");
+#endif
 
     /* Enable STCE for vstimecmp comparison logic */
     uintptr_t saved_menvcfg = menvcfg_read();

@@ -32,3 +32,16 @@ extension as **draft 0.6**. The yaml declares S/Sm 1.12 and H 1.0 only so that
 UDB accepts H; the hardware has no `menvcfg`, `senvcfg`, `henvcfg`,
 `htimedelta` or `stimecmp`. Failures that come from H 0.6 vs ratified H 1.0
 (or priv 1.11 vs 1.12+) are expected and are not hardware bugs.
+
+## Absent CSRs
+
+The shared reset and set-up code assumes priv 1.12+ and touches `menvcfg`,
+`henvcfg` and `htimedelta`, which trap on this core and would stop every
+suite before its first test. `PLATFORM_ABSENT_CSRS` in `platform_config.h`
+lists them; the M-mode trap handler emulates an unarmed access to one of
+them as read-zero / write-ignored. Tests that arm the trap still see it.
+
+Checked on Sail 0.14.1 with the board's priv-1.11 + H configuration: without
+the emulation every suite stops at `csrr menvcfg` (the same trap as on the
+board); with it, 21 of the 23 hypervisor suites run to completion. `Sha`
+stops at `mstateen0` (the P550 does not implement Sha/Ssstateen).

@@ -415,6 +415,39 @@ static inline uintptr_t next_instruction(uintptr_t epc) {
  * capture right after the MDT-clearing MRET may run too early).
  * Suites that need the entry-time mtval2 (Ssdbltrp) override this
  * hook. */
+/* Saved GPR frame of the current M-mode trap (set by m_trap_entry). */
+uintptr_t *g_m_trap_frame;
+
+#ifdef PLATFORM_ABSENT_CSRS
+/*
+ * Emulate CSRs the platform does not implement (PLATFORM_ABSENT_CSRS, a
+ * comma-separated list of CSR numbers in platform_config.h): an unarmed
+ * illegal-instruction trap on a Zicsr instruction for one of them reads
+ * as zero and ignores the write, so shared set-up and reset code that
+ * assumes newer privileged versions (e.g. menvcfg/henvcfg on a priv-1.11
+ * core with H) keeps running instead of halting the suite. Tests that arm
+ * the trap still see it.
+ */
+static bool emulate_absent_csr(uintptr_t tval) {
+    static const unsigned absent[] = { PLATFORM_ABSENT_CSRS };
+    uint32_t insn = (uint32_t)tval;          /* mtval holds the instruction */
+    unsigned funct3 = (insn >> 12) & 7;
+    unsigned csr = insn >> 20;
+    unsigned rd = (insn >> 7) & 31;
+    bool listed = false;
+
+    if ((insn & 0x7f) != 0x73 || funct3 == 0 || funct3 == 4)
+        return false;                        /* not a CSR instruction */
+    for (unsigned i = 0; i < sizeof(absent) / sizeof(absent[0]); i++)
+        listed |= (absent[i] == csr);
+    if (!listed || g_m_trap_frame == 0)
+        return false;
+    if (rd != 0 && rd != 2)                  /* x2 (sp) is not in the frame */
+        g_m_trap_frame[rd - 1] = 0;
+    return true;
+}
+#endif
+
 __attribute__((weak)) void trap_m_entry_mtval2_hook(uintptr_t mtval2) {
     (void)mtval2;
 }
@@ -739,6 +772,13 @@ unsigned m_trap_handler(void) {
          * Using sret here would be wrong because sepc is not set. */
         return PRIV_M;
     }
+
+#ifdef PLATFORM_ABSENT_CSRS
+    if (cause == CAUSE_ILLEGAL_INST && emulate_absent_csr(tval)) {
+        CSRW(mepc, epc + 4);                 /* Zicsr instructions are 32-bit */
+        return PRIV_M;
+    }
+#endif
 
     /* ---- Unexpected exception: fatal error ---- */
     LOG_E("UNEXPECTED TRAP in M-mode !!!\n");
