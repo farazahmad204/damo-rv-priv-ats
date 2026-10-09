@@ -102,6 +102,11 @@
     .global m_trap_entry
 m_trap_entry:
     SAVE_CONTEXT
+    /* Publish the saved register frame (x1 at slot 0, xN at slot N-1) so
+     * the C handler can write a destination register when it emulates an
+     * instruction (see emulate_absent_csr() in trap.c). t0 is saved. */
+    la      t0, g_m_trap_frame
+    STORE   sp, 0(t0)
     jal     m_trap_handler
     j       _trap_return
 
