@@ -116,6 +116,13 @@ rvtest_entry_point:
      * Projects that need Smdbltrp-specific trap handling (e.g., Smdbltrp,
      * Ssdbltrp) should install smdbltrp_m_trap_entry in their main.c.
      */
+    /* Keep the loader's trap vector first: a hardware runner that ends a test on
+     * an M-mode ecall from RVMODEL_HALT_* (e.g. config/spacemit-k3-pico-itx)
+     * needs it back. Stored in .data, not BSS, which is cleared below. */
+    csrr    t0, mtvec
+    la      t1, rvtest_entry_mtvec
+    STORE   t0, 0(t1)
+
     la      t0, m_trap_entry
     csrw    mtvec, t0
 
@@ -208,3 +215,11 @@ _secondary_spin:
 
     /* ---- Platform-specific data section (e.g., semihost exit codes, tohost) ---- */
     RVMODEL_DATA_SECTION
+
+/* The loader's mtvec at entry (see above). */
+    .pushsection .data
+    .balign 8
+    .global rvtest_entry_mtvec
+rvtest_entry_mtvec:
+    .dword 0
+    .popsection
