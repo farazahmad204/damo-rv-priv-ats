@@ -140,6 +140,11 @@ static inline uint8_t uart_reg_read(unsigned int reg) {
 
 void uart_init(void)
 {
+#ifdef PLATFORM_UART_KEEP_FIRMWARE_SETUP
+    /* The previous boot stage configured the UART and the platform's UART must not be
+     * reprogrammed (e.g. XScale/PXA, where IER bit 6 enables the unit): only transmit. */
+    return;
+#endif
 #ifdef UART_SILENT_MODE
     /* Skip all UART hardware init in silent mode.
      * Output is captured in the memory buffer only. */
